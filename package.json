@@ -1,0 +1,19 @@
+{
+  "name": "timesheet-reminder",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multi-source timesheet compliance and reminder automation (Jira, Redmine, Pulse)",
+  "workspaces": ["server", "web"],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w server\" \"npm run dev -w web\"",
+    "build": "npm run build -w web",
+    "start": "npm run start -w server",
+    "test": "npm test -w server",
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w web",
+    "keygen": "node -e \"console.log(require('crypto').randomBytes(32).toString('base64'))\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": { "node": ">=22.13" }
+}
