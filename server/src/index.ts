@@ -10,8 +10,10 @@ try {
 
 try {
   const config = loadConfig();
-  const { app } = await buildApp({ config, logger: true });
+  const { app, scheduler } = await buildApp({ config, logger: true });
   await app.listen({ port: config.port, host: config.host });
+  scheduler.start();
+  app.log.info('Reminder scheduler started (wakes each minute; honours dry-run and the configured schedule).');
 } catch (e) {
   if (e instanceof ConfigError) {
     console.error(e.message);

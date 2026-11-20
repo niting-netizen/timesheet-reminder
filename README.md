@@ -20,7 +20,9 @@ Automated weekly timesheet compliance checks and reminder emails across Jira, Re
 | 4. Worklog fetching: Jira Cloud/Data Center and Redmine APIs; Pulse/Texpert by file import | Done |
 | 5. Weekly check: per-employee logged, required and pending hours; approved leave and holidays; dashboard | Done |
 | Pulse API fetching | Waiting for Cloudflare access and confirmed endpoints |
-| 6–8. Email sending, scheduler, email history, Excel export | Next |
+| 6. Email sending (Gmail API, Microsoft Graph, SMTP), recipient modes (broadcast / individual / custom), dry-run, email history | Done |
+| 7. Reminder scheduler (events R1/R2/R3/REPEAT, dedupe, stop conditions, hot reload) and manual "send now" / "send test" | Done |
+| 8. Dashboard, weekly CSV export, Reminders & email page | Done |
 
 ### How a check works
 
@@ -44,7 +46,9 @@ npm start                   # http://127.0.0.1:8787
 
 During development, `npm run dev` runs the API (port 8787) and the dashboard with hot reload (http://localhost:5173).
 
-Other commands: `npm test` (41 tests), `npm run typecheck`.
+Other commands: `npm test` (65 tests), `npm run typecheck`.
+
+When the server runs, a scheduler wakes every minute and sends any reminder due at that time (Thursday 11:00, Friday 11:00/13:00, then every 2 hours), honouring **Dry run** — with dry run on, reminders are rendered and recorded on the **Reminders & email** page but no mail is delivered. Turn it off and save to send for real.
 
 ## Security notes
 

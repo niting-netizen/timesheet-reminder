@@ -202,8 +202,14 @@ describe('connection tests', () => {
 
   it('Gmail: refresh-token exchange must include gmail.send', async () => {
     const ep = { ...defaultSettings().emailProvider, gmail: { clientId: 'cid' } };
-    fetchMock.mockResolvedValueOnce(json(200, { access_token: 'a', scope: 'https://www.googleapis.com/auth/gmail.readonly' }));
+    fetchMock.mockResolvedValueOnce(json(401, { error: 'unauthorized_client', error_description: 'Unauthorized' }));
     let r = (await call('POST', '/api/tests/email', { emailProvider: ep, secrets: { gmailClientSecret: 's', gmailRefreshToken: 'r' } })).json();
+    expect(r.ok).toBe(false);
+    expect(r.message).toMatch(/unauthorized_client/);
+    expect(r.message).toMatch(/client ID and secret match/);
+
+    fetchMock.mockResolvedValueOnce(json(200, { access_token: 'a', scope: 'https://www.googleapis.com/auth/gmail.readonly' }));
+    r = (await call('POST', '/api/tests/email', { emailProvider: ep, secrets: { gmailClientSecret: 's', gmailRefreshToken: 'r' } })).json();
     expect(r.ok).toBe(false);
     expect(r.message).toMatch(/gmail.send/);
     fetchMock.mockResolvedValueOnce(json(200, { access_token: 'a', scope: 'https://www.googleapis.com/auth/gmail.send' }));

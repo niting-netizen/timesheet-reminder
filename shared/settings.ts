@@ -291,3 +291,39 @@ export interface Employee {
   active: boolean;
   accounts: Partial<Record<SourceType, string>>;
 }
+
+/* ---------- email sending ---------- */
+
+export type EmailStatus = 'sent' | 'dry_run' | 'failed' | 'test';
+
+export interface EmailMessage {
+  id: number;
+  weekStart: string;
+  eventId: string;
+  cycleNo: number;
+  mode: RecipientMode;
+  recipient: string;
+  to: string[];
+  cc: string[];
+  subject: string;
+  status: EmailStatus;
+  provider: string;
+  providerMessageId: string;
+  error: string;
+  employeeId: number | null;
+  trigger: 'manual' | 'scheduled' | 'test';
+  sentAt: string;
+  actor: string;
+}
+
+export interface SendSummary {
+  weekStart: string;
+  eventId: EventId;
+  cycleNo: number;
+  dryRun: boolean;
+  sent: number;
+  dryRunCount: number;
+  skipped: number;
+  failed: number;
+  messages: EmailMessage[];
+}

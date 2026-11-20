@@ -51,6 +51,13 @@ export async function testEmail(cfg: EmailProviderConfig, s: EmailSecrets, ctx: 
     if (r.status !== 200 || !b?.access_token) {
       if (b?.error === 'invalid_grant') return { ok: false, message: 'The refresh token is expired or revoked. Authorise the sender mailbox again.' };
       if (b?.error === 'invalid_client') return { ok: false, message: 'Google rejected the client ID or client secret.' };
+      if (b?.error === 'unauthorized_client') {
+        return {
+          ok: false,
+          message:
+            'Google rejected this client for the refresh-token grant (unauthorized_client). Check that the client ID and secret match the OAuth client that issued this refresh token, then authorise the sender mailbox again with the gmail.send scope.',
+        };
+      }
       return { ok: false, message: b?.error_description ?? describeStatus(r.status, 'OAuth credentials') };
     }
     const scopes = (b.scope ?? '').split(' ');

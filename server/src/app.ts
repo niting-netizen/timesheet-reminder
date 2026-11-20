@@ -12,8 +12,11 @@ import { EmployeeService } from './employees/service';
 import { RunService } from './runs/service';
 import { ImportService } from './runs/imports';
 import { AdjustmentService } from './runs/adjustments';
+import { EmailService } from './email/service';
+import { Scheduler } from './scheduler';
 import { registerRoutes, type Deps } from './routes';
 import { AppError, fromZod } from './errors';
+import type { SendContext } from './email/providers';
 
 export interface BuildOptions {
   config: Pick<Config, 'dbPath' | 'masterKey' | 'adminPassword' | 'allowInsecureSources' | 'webDist'>;
@@ -24,9 +27,10 @@ export interface BuildOptions {
   /** Test hooks */
   sleep?: (ms: number) => Promise<void>;
   now?: () => Date;
+  smtpSend?: SendContext['smtpSend'];
 }
 
-export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstance; db: Db }> {
+export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstance; db: Db; email: EmailService; scheduler: Scheduler }> {
   const { config } = opts;
   const db = opts.db ?? openDb(config.dbPath);
   const secrets = new SecretStore(db, deriveKey(config.masterKey, 'secrets'));
@@ -39,6 +43,8 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
     connector: { fetch: fetchFn, allowInsecure: config.allowInsecureSources, sleep: opts.sleep },
     now: opts.now,
   });
+  const email = new EmailService({ db, settings, secrets, runs, fetch: fetchFn, smtpSend: opts.smtpSend, now: opts.now });
+  const scheduler = new Scheduler({ settings, runs, email, now: opts.now });
   const deps: Deps = {
     auth: new Auth(deriveKey(config.masterKey, 'session'), config.adminPassword),
     settings,
@@ -47,6 +53,7 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
     runs,
     imports,
     adjustments,
+    email,
     worklogsFor: (employeeId, from, to, s) => {
       const origin = Object.fromEntries(s.sources.map((x) => [x.type, x.authType === 'csv_import' ? 'import' : 'api']));
       return (
@@ -107,5 +114,5 @@ export async function buildApp(opts: BuildOptions): Promise<{ app: FastifyInstan
     });
   }
 
-  return { app, db };
+  return { app, db, email, scheduler };
 }

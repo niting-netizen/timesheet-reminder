@@ -198,7 +198,7 @@ export function Dashboard() {
                 </tbody>
               </table>
             </div>
-            <p className="help">Click an employee to see their worklogs. Nothing is emailed yet; sending arrives in a later phase.</p>
+            <p className="help">Click an employee to see their worklogs. To send or schedule reminder emails from this data, go to <a href="#reminders">Reminders &amp; email</a>.</p>
           </>
         )}
       </section>

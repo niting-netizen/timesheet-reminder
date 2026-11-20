@@ -127,6 +127,29 @@ const MIGRATIONS: string[] = [
   );
   CREATE INDEX ix_adjustments_date ON calendar_adjustments (date);
   `,
+  `
+  CREATE TABLE email_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    week_start TEXT NOT NULL,
+    event_id TEXT NOT NULL,
+    cycle_no INTEGER NOT NULL DEFAULT 1,
+    mode TEXT NOT NULL,
+    recipient TEXT NOT NULL,          -- dedupe key within (week, event, cycle): an email or a list name
+    to_list TEXT NOT NULL DEFAULT '[]',
+    cc_list TEXT NOT NULL DEFAULT '[]',
+    subject TEXT NOT NULL,
+    status TEXT NOT NULL,             -- sent | dry_run | failed | test
+    provider TEXT NOT NULL DEFAULT '',
+    provider_message_id TEXT NOT NULL DEFAULT '',
+    error TEXT NOT NULL DEFAULT '',
+    employee_id INTEGER,
+    trigger TEXT NOT NULL DEFAULT 'manual',
+    sent_at TEXT NOT NULL,
+    actor TEXT NOT NULL DEFAULT ''
+  );
+  CREATE INDEX ix_email_messages_at ON email_messages (id DESC);
+  CREATE INDEX ix_email_dedupe ON email_messages (week_start, event_id, cycle_no, recipient);
+  `,
 ];
 
 export function openDb(file: string): Db {

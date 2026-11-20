@@ -13,9 +13,11 @@ import { Schedule } from './pages/Schedule';
 import { Templates } from './pages/Templates';
 import { Ai } from './pages/Ai';
 import { Employees } from './pages/Employees';
+import { Reminders } from './pages/Reminders';
 
 const VIEWS = {
   dashboard: { label: 'Dashboard', group: 'Timesheets', Page: Dashboard },
+  reminders: { label: 'Reminders & email', group: 'Timesheets', Page: Reminders },
   imports: { label: 'Worklog import', group: 'Timesheets', Page: Imports },
   leave: { label: 'Leave & holidays', group: 'Timesheets', Page: Leave },
   employees: { label: 'Employees', group: 'Timesheets', Page: Employees },

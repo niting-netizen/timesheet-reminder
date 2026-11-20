@@ -14,8 +14,9 @@ import type { EmployeeService } from './employees/service';
 import type { RunService } from './runs/service';
 import type { ImportService } from './runs/imports';
 import type { AdjustmentService } from './runs/adjustments';
+import type { EmailService } from './email/service';
 import { weeklyReportCsv } from './runs/export';
-import type { Settings } from '../../shared/settings';
+import { EVENT_IDS, type Settings } from '../../shared/settings';
 import { testSource } from './testers/sources';
 import { testEmail, type EmailTestContext } from './testers/email';
 import { assist, testGroq } from './ai/groq';
@@ -30,6 +31,7 @@ export interface Deps {
   runs: RunService;
   imports: ImportService;
   adjustments: AdjustmentService;
+  email: EmailService;
   worklogsFor: (employeeId: number, from: string, to: string, settings: Settings) => unknown[];
   fetch: FetchFn;
   allowInsecureSources: boolean;
@@ -165,6 +167,20 @@ export function registerRoutes(app: FastifyInstance, d: Deps) {
     const w = d.runs.window(settings, parse(weekParam, req.query.week));
     return d.worklogsFor(Number(req.params.id), w.from, w.to, settings);
   });
+
+  /* ---- reminder emails ---- */
+  app.post('/api/reminders/send', admin, async (req) => {
+    const body = parse(z.object({ eventId: z.enum(EVENT_IDS), weekOf: weekParam, cycleNo: z.number().int().min(1).max(12).optional() }), req.body);
+    return d.email.sendEvent({ eventId: body.eventId, weekOf: body.weekOf, cycleNo: body.cycleNo, trigger: 'manual', actor: actor(req) });
+  });
+  app.post('/api/reminders/test', admin, async (req) => {
+    const body = parse(
+      z.object({ eventId: z.enum(EVENT_IDS), to: z.string().trim().email('Enter a valid email address'), weekOf: weekParam }),
+      req.body,
+    );
+    return d.email.sendTest({ eventId: body.eventId, to: body.to, weekOf: body.weekOf, actor: actor(req) });
+  });
+  app.get('/api/emails', admin, async () => d.email.history());
 
   /* ---- worklog file import (Pulse until its API is confirmed) ---- */
   app.post('/api/imports/worklogs', admin, async (req) => {
